@@ -98,10 +98,10 @@ class PageRank:
         return sorted_docs
 
     def is_converged(self, new_p, old_p):
-        if old_p:
+        if old_p != None:
             diff = math.fabs(new_p-old_p)
             print("perplexity diff: " + str(diff))
-            if diff <= 0.00000001 : # TODO WHAT IS THE CONVERGENCE VALUE
+            if diff <= 0.00000001 :
                 return True
         return False
 
@@ -115,14 +115,14 @@ class PageRank:
 
 
 if __name__ == "__main__":
-    # pr = PageRank(inlink_file=MERGED_INLINKS, outlink_file=MERGED_OUTLINKS)
-    # print(len(pr.inlinks))
-    # print(len(pr.outlinks))
-    # pageranked_dict = pr.calc_pagerank()
-    # pr.save_top_500(pageranked_dict, "merged_pagerank500.txt")
-
-    pr = PageRank(inlink_file=TXT_INLINKS, outlink_file=TXT_OUTLINKS)
+    pr = PageRank(inlink_file=MERGED_INLINKS, outlink_file=MERGED_OUTLINKS)
     print(len(pr.inlinks))
     print(len(pr.outlinks))
     pageranked_dict = pr.calc_pagerank()
-    pr.save_top_500(pageranked_dict, "txt_pagerank500.txt")
+    pr.save_top_500(pageranked_dict, "merged_pagerank500.txt")
+
+    # pr = PageRank(inlink_file=TXT_INLINKS, outlink_file=TXT_OUTLINKS)
+    # print(len(pr.inlinks))
+    # print(len(pr.outlinks))
+    # pageranked_dict = pr.calc_pagerank()
+    # pr.save_top_500(pageranked_dict, "txt_pagerank500.txt")

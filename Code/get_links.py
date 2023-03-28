@@ -53,32 +53,19 @@ def generate_link_dicts_from_txt():
     outlink_dict = {}
 
     with open(file) as opened:
-        lines = opened.readlines()
-        for line in lines:
+        for line in opened:
             split_lines = line.split()
-            inlink_dict[split_lines[0]] = list(split_lines[1:])
+            inlink_dict[split_lines[0]] = list(set(split_lines[1:]))
+            outlink_dict.update({each: outlink_dict.get(each, []) + [split_lines[0]] for each in split_lines[1:]})
 
-        for key, value in inlink_dict.items():
-            for each in value:
-                if each not in outlink_dict.keys():
-                    outlink_dict[each] = [key]
-                else:
-                    outlink_dict[each].append(key)
+    outlink_dict.update({key: [] for key in set(inlink_dict.keys()) - set(outlink_dict.keys())})
+    inlink_dict = {key: list(value) for key, value in inlink_dict.items()}
+    outlink_dict = {key: list(set(value)) for key, value in outlink_dict.items()}
 
-        # for key, value in inlink_dict.items():
-            if key not in outlink_dict.keys():
-                outlink_dict[key] = []
-
-        for key, value in inlink_dict.items():
-            inlink_dict[key] = list(set(value))
-
-        for key, value in outlink_dict.items():
-            outlink_dict[key] = list(set(value))
-
-    opened.close()
     print(len(inlink_dict))
     print(len(outlink_dict))
     return inlink_dict, outlink_dict
+
 
 """ella1 = 'https://en.wikipedia.org/wiki/Posidonius'
 ella2 = 'https://en.wikipedia.org/wiki/Der_Blaue_Reiter'
