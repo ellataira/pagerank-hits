@@ -56,21 +56,28 @@ def generate_link_dicts_from_txt():
         lines = opened.readlines()
         for line in lines:
             split_lines = line.split()
-            docid = split_lines[0]
+            inlink_dict[split_lines[0]] = list(split_lines[1:])
 
-            if len(split_lines) > 1:
-                inlinks = split_lines[1:]
-                for i in inlinks: # if the url has any inlinks, update the inlink graph
-                    try:
-                        inlink_dict[i].append(docid)
-                    except:
-                        inlink_dict[i] = [docid]
-            else: # only doc without inlinks == seeds
-                inlinks = [] # no need to update inlink graph
+        for key, value in inlink_dict.items():
+            for each in value:
+                if each not in outlink_dict.keys():
+                    outlink_dict[each] = [key]
+                else:
+                    outlink_dict[each].append(key)
 
-            outlink_dict[docid] = inlinks
+        # for key, value in inlink_dict.items():
+            if key not in outlink_dict.keys():
+                outlink_dict[key] = []
+
+        for key, value in inlink_dict.items():
+            inlink_dict[key] = list(set(value))
+
+        for key, value in outlink_dict.items():
+            outlink_dict[key] = list(set(value))
 
     opened.close()
+    print(len(inlink_dict))
+    print(len(outlink_dict))
     return inlink_dict, outlink_dict
 
 """ella1 = 'https://en.wikipedia.org/wiki/Posidonius'
@@ -104,9 +111,9 @@ print(allout)"""
 
 if __name__ == "__main__":
     utils = Utils.Utils()
-    merged_inlinks, merged_outlinks = generate_link_dicts_from_es()
-    utils.save_dict("data/merged_inlinks.pkl", merged_inlinks)
-    utils.save_dict("data/merged_outlinks.pkl", merged_outlinks)
+    # merged_inlinks, merged_outlinks = generate_link_dicts_from_es()
+    # utils.save_dict("data/merged_inlinks.pkl", merged_inlinks)
+    # utils.save_dict("data/merged_outlinks.pkl", merged_outlinks)
     txt_inlinks, txt_outlinks = generate_link_dicts_from_txt()
     utils.save_dict("data/txt_inlinks.pkl", txt_inlinks)
     utils.save_dict("data/txt_outlinks.pkl", txt_outlinks)

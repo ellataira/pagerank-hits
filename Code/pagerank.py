@@ -116,9 +116,13 @@ class PageRank:
 
 if __name__ == "__main__":
     # pr = PageRank(inlink_file=MERGED_INLINKS, outlink_file=MERGED_OUTLINKS)
+    # print(len(pr.inlinks))
+    # print(len(pr.outlinks))
     # pageranked_dict = pr.calc_pagerank()
     # pr.save_top_500(pageranked_dict, "merged_pagerank500.txt")
 
     pr = PageRank(inlink_file=TXT_INLINKS, outlink_file=TXT_OUTLINKS)
+    print(len(pr.inlinks))
+    print(len(pr.outlinks))
     pageranked_dict = pr.calc_pagerank()
     pr.save_top_500(pageranked_dict, "txt_pagerank500.txt")
