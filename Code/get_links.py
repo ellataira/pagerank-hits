@@ -1,5 +1,5 @@
 from elasticsearch7 import Elasticsearch
-import Utils as Utils
+import Utils
 
 INDEX = 'homework3'
 CLOUD_ID = 'homework3:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvOjQ0MyQ3NjJhZDM3NTU4MTY0OWM1ODM3ZTRiYjg5NjI5ZmFiNyQyMWU0ZDM1MDQzNmY0NDA3OGIzZTY0NTMyN2Q0NTUzNg=='
@@ -14,9 +14,10 @@ def normalize_link_formatting(doc, in_or_out_links):
 
     return links
 
-def generate_link_dicts():
+def generate_link_dicts_from_es():
     inlinks = {}
     outlinks = {}
+    doc_count = 0
 
     q = {
         'query':{
@@ -24,13 +25,53 @@ def generate_link_dicts():
         }
     }
 
-    all_docs = es.search(index=INDEX, body=q, size=97259, scroll='3m', request_timeout=500)
+    resp = es.search(index=INDEX, body=q, size=2000, scroll='3m')
+    old_scroll_id = resp['_scroll_id']
 
-    for doc in all_docs['hits']['hits']:
-        inlinks[doc['_id']] = normalize_link_formatting(doc, "inlinks")
-        outlinks[doc['_id']] = normalize_link_formatting(doc, "outlinks")
+    while len(resp['hits']['hits']):
+        resp = es.scroll(scroll_id=old_scroll_id, scroll='3m')
 
+        if old_scroll_id != resp['_scroll_id']:
+            print("new scroll id: " + resp['_scroll_id'])
+
+        old_scroll_id = resp['_scroll_id']
+
+        print('response["hits"]["total"]["value"]:', resp["hits"]["total"]["value"])
+
+        for doc in resp['hits']['hits']:
+            inlinks[doc['_id']] = normalize_link_formatting(doc, "inlinks")
+            outlinks[doc['_id']] = normalize_link_formatting(doc, "outlinks")
+            doc_count+=1
+            print(doc_count)
+
+    print(doc_count)
     return inlinks, outlinks
+
+def generate_link_dicts_from_txt():
+    file = "/Users/ellataira/Desktop/is4200/homework-4-ellataira/wt2g_inlinks.txt"
+    inlink_dict = {}
+    outlink_dict = {}
+
+    with open(file) as opened:
+        lines = opened.readlines()
+        for line in lines:
+            split_lines = line.split()
+            docid = split_lines[0]
+
+            if len(split_lines) > 1:
+                inlinks = split_lines[1:]
+                for i in inlinks: # if the url has any inlinks, update the inlink graph
+                    try:
+                        inlink_dict[i].append(docid)
+                    except:
+                        inlink_dict[i] = [docid]
+            else: # only doc without inlinks == seeds
+                inlinks = [] # no need to update inlink graph
+
+            outlink_dict[docid] = inlinks
+
+    opened.close()
+    return inlink_dict, outlink_dict
 
 """ella1 = 'https://en.wikipedia.org/wiki/Posidonius'
 ella2 = 'https://en.wikipedia.org/wiki/Der_Blaue_Reiter'
@@ -62,7 +103,11 @@ print(allin)
 print(allout)"""
 
 if __name__ == "__main__":
-    utils = Utils()
-    inlinks, outlinks = generate_link_dicts()
-    utils.save_dict("inlinks.pkl", inlinks)
-    utils.save_dict("outlinks.pkl", outlinks)
+    utils = Utils.Utils()
+    merged_inlinks, merged_outlinks = generate_link_dicts_from_es()
+    utils.save_dict("data/merged_inlinks.pkl", merged_inlinks)
+    utils.save_dict("data/merged_outlinks.pkl", merged_outlinks)
+    txt_inlinks, txt_outlinks = generate_link_dicts_from_txt()
+    utils.save_dict("data/txt_inlinks.pkl", txt_inlinks)
+    utils.save_dict("data/txt_outlinks.pkl", txt_outlinks)
+
