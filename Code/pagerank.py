@@ -56,7 +56,7 @@ class PageRank:
                         new_pr_dict[docid] += d * pr_l / len_outlinks
                         # pagerank_dict[docid] += d * pr_l / len_outlinks
 
-            for docid, score in pagerank_dict:
+            for docid, score in pagerank_dict.items():
                 pagerank_dict[docid] = new_pr_dict[docid]
 
             new_perplexity = self.calc_perplexity(pagerank_dict)
@@ -101,14 +101,14 @@ class PageRank:
         if old_p:
             diff = math.fabs(new_p-old_p)
             print("perplexity diff: " + str(diff))
-            if diff <= 0.000000000001 : # TODO WHAT IS THE CONVERGENCE VALUE
+            if diff <= 0.00000001 : # TODO WHAT IS THE CONVERGENCE VALUE
                 return True
         return False
 
     def calc_perplexity(self, pagerank_dict):
         entropy = 0
         for url, score in pagerank_dict.items():
-            entropy += score * math.log(score)
+            entropy += score * math.log(score, 2) # TODO log base 2?
         entropy = -1 * entropy
         p = math.pow(2, entropy)
         return p
