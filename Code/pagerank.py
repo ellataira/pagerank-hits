@@ -125,4 +125,4 @@ if __name__ == "__main__":
     # print(len(pr.inlinks))
     # print(len(pr.outlinks))
     # pageranked_dict = pr.calc_pagerank()
-    # pr.save_top_500(pageranked_dict, "txt_pagerank500.txt")
+    # pr.save_top_500(pageranked_dic t, "txt_pagerank500.txt")

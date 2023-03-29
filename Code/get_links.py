@@ -1,3 +1,4 @@
+
 from elasticsearch7 import Elasticsearch
 import Utils
 
@@ -25,8 +26,13 @@ def generate_link_dicts_from_es():
         }
     }
 
-    resp = es.search(index=INDEX, body=q, size=2000, scroll='3m')
+    resp = es.search(index=INDEX, body=q, size=1000, scroll='3m')
     old_scroll_id = resp['_scroll_id']
+
+    for doc in resp['hits']['hits']:
+        inlinks[doc['_id']] = normalize_link_formatting(doc, "inlinks")
+        outlinks[doc['_id']] = normalize_link_formatting(doc, "outlinks")
+        doc_count += 1
 
     while len(resp['hits']['hits']):
         resp = es.scroll(scroll_id=old_scroll_id, scroll='3m')
@@ -42,9 +48,10 @@ def generate_link_dicts_from_es():
             inlinks[doc['_id']] = normalize_link_formatting(doc, "inlinks")
             outlinks[doc['_id']] = normalize_link_formatting(doc, "outlinks")
             doc_count+=1
-            print(doc_count)
 
     print(doc_count)
+    print(len(inlinks))
+    print(len(outlinks))
     return inlinks, outlinks
 
 def generate_link_dicts_from_txt():
@@ -65,6 +72,7 @@ def generate_link_dicts_from_txt():
     print(len(inlink_dict))
     print(len(outlink_dict))
     return inlink_dict, outlink_dict
+
 
 
 """ella1 = 'https://en.wikipedia.org/wiki/Posidonius'
@@ -98,10 +106,10 @@ print(allout)"""
 
 if __name__ == "__main__":
     utils = Utils.Utils()
-    # merged_inlinks, merged_outlinks = generate_link_dicts_from_es()
-    # utils.save_dict("data/merged_inlinks.pkl", merged_inlinks)
-    # utils.save_dict("data/merged_outlinks.pkl", merged_outlinks)
-    txt_inlinks, txt_outlinks = generate_link_dicts_from_txt()
-    utils.save_dict("data/txt_inlinks.pkl", txt_inlinks)
-    utils.save_dict("data/txt_outlinks.pkl", txt_outlinks)
+    merged_inlinks, merged_outlinks = generate_link_dicts_from_es()
+    utils.save_dict("data/merged_inlinks.pkl", merged_inlinks)
+    utils.save_dict("data/merged_outlinks.pkl", merged_outlinks)
+    # txt_inlinks, txt_outlinks = generate_link_dicts_from_txt()
+    # utils.save_dict("data/txt_inlinks.pkl", txt_inlinks)
+    # utils.save_dict("data/txt_outlinks.pkl", txt_outlinks)
 

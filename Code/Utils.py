@@ -1,3 +1,4 @@
+import math
 import pickle
 
 class Utils:
@@ -18,3 +19,9 @@ class Utils:
         dict = pickle.load(infile)
         infile.close()
         return dict
+
+# u = Utils()
+# inlinks = u.read_pickle("/Users/ellataira/Desktop/is4200/homework-4-ellataira/Code/data/merged_inlinks.pkl")
+# outlinks = u.read_pickle("/Users/ellataira/Desktop/is4200/homework-4-ellataira/Code/data/merged_outlinks.pkl")
+# print(outlinks["https://en.wikipedia.org/wiki/Leftist"])
+# print(inlinks["https://en.wikipedia.org/wiki/Leftist"])
