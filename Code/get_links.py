@@ -6,6 +6,7 @@ INDEX = 'homework3'
 CLOUD_ID = 'homework3:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvOjQ0MyQ3NjJhZDM3NTU4MTY0OWM1ODM3ZTRiYjg5NjI5ZmFiNyQyMWU0ZDM1MDQzNmY0NDA3OGIzZTY0NTMyN2Q0NTUzNg=='
 es = Elasticsearch(request_timeout = 1000, cloud_id = CLOUD_ID, http_auth= ('elastic', '74QCRsRmX0WpC67mIj0PZfDw'))
 
+# normalizes formatting of inlinks from ES merged index discrepancies
 def normalize_link_formatting(doc, in_or_out_links):
     links = doc['_source'][in_or_out_links]
 
@@ -15,6 +16,7 @@ def normalize_link_formatting(doc, in_or_out_links):
 
     return links
 
+# generates inlink and outlink graph of all documents in ES index
 def generate_link_dicts_from_es():
     inlinks = {}
     outlinks = {}
@@ -54,6 +56,7 @@ def generate_link_dicts_from_es():
     print(len(outlinks))
     return inlinks, outlinks
 
+# generates inlink and outlink graph from wt2g_inlinks.txt file
 def generate_link_dicts_from_txt():
     file = "/Users/ellataira/Desktop/is4200/homework-4-ellataira/wt2g_inlinks.txt"
     inlink_dict = {}
@@ -73,36 +76,6 @@ def generate_link_dicts_from_txt():
     print(len(outlink_dict))
     return inlink_dict, outlink_dict
 
-
-
-"""ella1 = 'https://en.wikipedia.org/wiki/Posidonius'
-ella2 = 'https://en.wikipedia.org/wiki/Der_Blaue_Reiter'
-olivia1 = 'http://raceforward.org/research/mkrajcer'
-olivia2 = 'https://commons.wikimedia.org/w/index.php?campaign=loginCTA&returnto=Special:WhatLinksHere/Category:Critical+race+theory&returntoquery=target=Category%253ACritical+race+theory&title=Special:CreateAccount'
-all = 'https://en.wikipedia.org/wiki/Wikipedia:Disambiguation'
-
-ella1inlinks = normalize_link_formatting(ella1, 'inlinks')
-ella1outlinks = normalize_link_formatting(ella1, 'outlinks')
-olivia1in = normalize_link_formatting(olivia1, 'inlinks')
-olivia1out = normalize_link_formatting(olivia1, 'outlinks')
-allin = normalize_link_formatting(all, 'inlinks')
-allout = normalize_link_formatting(all, 'outlinks')
-
-ella2inlinks = normalize_link_formatting(ella2, 'inlinks')
-ella2outlinks = normalize_link_formatting(ella2, 'outlinks')
-olivia2in = normalize_link_formatting(olivia2, 'inlinks')
-olivia2out = normalize_link_formatting(olivia2, 'outlinks')
-
-print(ella1inlinks)
-print(ella1outlinks)
-print(olivia1in)
-print(olivia1out)
-print(ella2inlinks)
-print(ella2outlinks)
-print(olivia2in)
-print(olivia2out)
-print(allin)
-print(allout)"""
 
 if __name__ == "__main__":
     utils = Utils.Utils()
