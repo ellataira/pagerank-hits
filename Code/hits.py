@@ -16,6 +16,7 @@ MERGED_OUTLINKS = "/Users/ellataira/Desktop/is4200/homework-4-ellataira/Code/dat
 
 class HITS:
 
+    # instance of HITS can use either saved base_set pkl file, or regenerate base_set
     def __init__(self, query, base_set=None):
         self.query = self.query_analyzer(query)
         print(self.query)
@@ -41,11 +42,11 @@ class HITS:
         res = es.indices.analyze(body=body, index=INDEX)
         return [list["token"] for list in res["tokens"]]
 
+    # using ES builtin retrieval model to get 1000 root documents
     def get_root_set(self):
         body = {
             "size":1000,
             "query": {
-                # "match": {"text": " ".join(self.query)}  # convert query array back into string
                 "match": {'content': " ".join(self.query)}
             }
         }
@@ -53,6 +54,7 @@ class HITS:
         res_es_search = es.search(index=INDEX, body=body)
         self.root_set = res_es_search
 
+    # iterate over root set to build up base set of 10000 documents using in/outlinks from root docs
     def expand_root_to_base(self):
         base_size = 10000
         base_set = set()
@@ -70,34 +72,26 @@ class HITS:
                 print(docid)
                 print(len(base_set))
 
-                # if docid == "https://en.wikipedia.org/wiki/Social_movement":
-                #     sys.exit()
-
                 inlinks= self.inlinks[docid]
                 outlinks= self.outlinks[docid]
 
-                # base_set.update(docid)
-                # to_append.update(docid)
                 to_append.update(outlinks)
-
-                # base_set.update(outlinks)
 
                 if len(inlinks) <= d :
                     inlinks_to_add = inlinks
                 else:
                     inlinks_to_add = random.sample(inlinks, k=d)
 
-                # base_set.update(inlinks_to_add)
                 to_append.update(inlinks_to_add)
 
                 to_append = list(to_append)
 
-                for doc in to_append: # ensure all docs in base_set are present in the index
+                for a in to_append: # ensure all docs in base_set are present in the index
                     try:
-                        check_ins = self.inlinks[doc]
-                        check_outs = self.outlinks[doc]
+                        check_ins = self.inlinks[a]
+                        check_outs = self.outlinks[a]
                     except:
-                        to_append.remove(doc)
+                        to_append.remove(a)
                         print("removed")
 
                 if (len(base_set) + len(to_append)) > base_size: # if there are too many new links to add (i.e. total over 10000,
@@ -112,6 +106,8 @@ class HITS:
         self.base_set = base_set
         utils.save_dict("base_set.pkl", base_set)
 
+    # compute HITS scores from base_sets
+    # returns HITS dictionary which maps docid: (authority score, hub score)
     def compute_hits(self):
         hits = {} #hits dict maps docid : (authority score, hub score)
         perplexity_stable_count = 0
@@ -122,8 +118,8 @@ class HITS:
 
         while perplexity_stable_count < 4:
             for docid, scores in hits.items():
-                new_auth = self.update_authority_scores(hits, docid, self.inlinks)
-                new_hub = self.update_hub_scores(hits, docid, self.outlinks)
+                new_auth = self.update_authority_scores(hits, docid)
+                new_hub = self.update_hub_scores(hits, docid)
 
                 hits[docid] = (new_auth, new_hub)
 
@@ -140,10 +136,11 @@ class HITS:
 
         return hits
 
-    def update_authority_scores(self, hits, docid, inlinks):
+    # update authority score based on given doc's inlinks' hub scores
+    def update_authority_scores(self, hits, docid):
         sum = 1
         try:
-            ins = inlinks[docid]
+            ins = self.inlinks[docid]
         except:
             ins = []
         for i in ins:
@@ -158,10 +155,11 @@ class HITS:
         print(sum)
         return sum
 
-    def update_hub_scores(self, hits, docid, outlinks):
+    # update hub score based on given doc's outlinks' auth scores
+    def update_hub_scores(self, hits, docid):
         sum = 1
         try:
-            outs = outlinks[docid]
+            outs = self.outlinks[docid]
         except:
             outs = []
         for o in outs:
@@ -176,6 +174,7 @@ class HITS:
         print(sum)
         return sum
 
+    # normalize authority and hub scores after each iteration
     def normalize(self, hits):
         auth_norm = 0
         hub_norm = 0
@@ -191,7 +190,7 @@ class HITS:
 
         return hits
 
-
+    # determines if scores are converged by comparing perplexity scores
     def is_converged(self, new_p, old_p):
         if old_p != None:
             diff = math.fabs(new_p-old_p)
@@ -200,6 +199,7 @@ class HITS:
                 return True
         return False
 
+    # calculates perplexity values of authority and hub scores
     def calc_perplexities(self, hits):
         auth_entropy = 0
         hub_entropy = 0
@@ -212,14 +212,15 @@ class HITS:
         hub_p = math.pow(2, -1 * hub_entropy)
         return auth_p, hub_p
 
+    # saves top 500 documents by authority and hub scores in two separate txt files
     def save_auth_and_hub_scores(self, hits):
         to_save_auth = self.sort_descending(hits, 500, 0)
         to_save_hub = self.sort_descending(hits, 500, 1)
 
-        self.save_top_500("authority_scores.txt", to_save_auth, 0)
-        self.save_top_500("hub_scores.txt", to_save_hub, 1)
+        self.save_top_500("authority_scores1.txt", to_save_auth, 0)
+        self.save_top_500("hub_scores1.txt", to_save_hub, 1)
 
-
+    # saves top 500 documents in given dictionary
     def save_top_500(self, filename, to_save, keyindex):
         file = "/Users/ellataira/Desktop/is4200/homework-4-ellataira/Results/" + filename
 
@@ -234,6 +235,7 @@ class HITS:
 
         f.close()
 
+    # sorts dictionary by specified key
     def sort_descending(self, pagerank_dict, k, key_index):
         sorted_docs = sorted(pagerank_dict.items(), key=lambda item: item[1][key_index], reverse=True)
         del sorted_docs[k:]

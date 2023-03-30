@@ -15,6 +15,7 @@ class PageRank:
         self.n = len(self.inlinks)
         self.delta = d
 
+    # gets all sink nodes, i.e. nodes with 0 outlinks
     def get_sink_nodes(self, outlinks):
         sink_list = []
         for url, links in outlinks.items():
@@ -22,6 +23,7 @@ class PageRank:
                 sink_list.append(url)
         return sink_list
 
+    # calculates the pagerank scores of a graph until convergence
     def calc_pagerank(self):
         pagerank_dict = {}
         new_pr_dict = {}
@@ -40,8 +42,6 @@ class PageRank:
             for docid, links in self.inlinks.items():
                 new_pr_dict[docid] = (1 - d) / N
                 new_pr_dict[docid] += d * sink / N
-                # pagerank_dict[docid] = (1 - d) / N
-                # pagerank_dict[docid] += d * sink / N
 
                 for l in links:
                     try: # if the inlink is not a document in the corpus, set to 0, which will make the score = 0
@@ -54,7 +54,6 @@ class PageRank:
                         # len_outlinks == 0 when the inlink, l, has no outlinks, but cannot divide by 0,
                         # so only add to score if docid has valid outlinks
                         new_pr_dict[docid] += d * pr_l / len_outlinks
-                        # pagerank_dict[docid] += d * pr_l / len_outlinks
 
             for docid, score in pagerank_dict.items():
                 pagerank_dict[docid] = new_pr_dict[docid]
@@ -69,6 +68,7 @@ class PageRank:
 
         return pagerank_dict
 
+    # saves top 500 pageranked documents to txt file
     def save_top_500(self, pagerank_dict, filename):
         to_save = self.sort_descending(pagerank_dict, 500)
         file = "/Users/ellataira/Desktop/is4200/homework-4-ellataira/Results/" + filename
@@ -85,6 +85,7 @@ class PageRank:
 
         f.close()
 
+    # helper methods to get in/outlinks with given url key, if they exist
     def try_get_links(self, url, in_or_out):
         try:
             ret = in_or_out[url]
@@ -92,11 +93,13 @@ class PageRank:
             ret = []
         return ret
 
+    # sorts a given dictionary in descending order by score
     def sort_descending(self, pagerank_dict, k):
         sorted_docs = sorted(pagerank_dict.items(), key=lambda item: item[1], reverse=True)
         del sorted_docs[k:]
         return sorted_docs
 
+    # determines if scores have converged based on perplexity values
     def is_converged(self, new_p, old_p):
         if old_p != None:
             diff = math.fabs(new_p-old_p)
@@ -105,10 +108,11 @@ class PageRank:
                 return True
         return False
 
+    # calculates perplexity value of pagerank scores
     def calc_perplexity(self, pagerank_dict):
         entropy = 0
         for url, score in pagerank_dict.items():
-            entropy += score * math.log(score, 2) # TODO log base 2?
+            entropy += score * math.log(score, 2)
         entropy = -1 * entropy
         p = math.pow(2, entropy)
         return p
@@ -125,4 +129,4 @@ if __name__ == "__main__":
     # print(len(pr.inlinks))
     # print(len(pr.outlinks))
     # pageranked_dict = pr.calc_pagerank()
-    # pr.save_top_500(pageranked_dic t, "txt_pagerank500.txt")
+    # pr.save_top_500(pageranked_dict, "txt_pagerank500.txt")
