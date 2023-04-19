@@ -58,6 +58,7 @@ For example, consider the following two documents, ranked 51 and 52:
 
 [rank,    doc,    score,   outlinks,  inlinks]
 51. WT23-B38-87 0.0005138135064904477 1 1
+
 52. WT27-B34-57 0.0005064132958536438 623 630
 
 WT23-B38-87 is ranked higher than WT27-B34-57 but has far fewer inlinks. However, WT23-B38-87's one inlink is ranked #8. To compare, many of WT27-B34-57's inlinks are not even ranked in the top 500. This explains why the document with only one, highly relevant inlink is ranked higher than the document with many non-relevant inlinks.  
