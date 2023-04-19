@@ -57,6 +57,7 @@ it will have a higher updated score. In the PageRank algorithm, score has a posi
 For example, consider the following two documents, ranked 51 and 52: 
 
 [rank,    doc,    score,   outlinks,  inlinks]
+
 51. WT23-B38-87 0.0005138135064904477 1 1
 
 52. WT27-B34-57 0.0005064132958536438 623 630
