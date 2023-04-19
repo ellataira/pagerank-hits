@@ -1,11 +1,55 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-8d59dc4de5201274e310e4c54b9627a8934c3b88527886e3b421487c677d23eb.svg)](https://classroom.github.com/a/8Sq9xjZA)
-# HW4
+# Web Graph Computation (PageRank and HITS)
 
-### Q: 
+The objective of this project is to compute link graph measures for a set of crawled documents using the adjacency matrix.
 
-Explain in few sentences why some pages have a higher PageRank but a smaller inlink count. In particular for finding the explanation: pick such case pages and look at other pages that point to them.
+## `get_links.py`
 
-### A: 
+This file generates the adjacency matrices of inlinks and outlinks for all crawled documents stored in an Elasticsearch index. 
+
+## `pagerank.py`
+
+This file calculates the PageRank scores of each document in the index until convergence. Scores have converged if their perplexity scores remain consistent for 4 iterations. 
+
+The implemented algorithm follows the following [pseudocode](https://course.ccs.neu.edu/cs6200f13/proj1.html):
+
+```
+// P is the set of all pages; |P| = N
+// S is the set of sink nodes, i.e., pages that have no out links
+// M(p) is the set of pages that link to page p
+// L(q) is the number of out-links from page q
+// d is the PageRank damping/teleportation factor; use d = 0.85 as is typical
+
+foreach page p in P
+  PR(p) = 1/N                          /* initial value */
+
+while PageRank has not converged do
+  sinkPR = 0
+  foreach page p in S                  /* calculate total sink PR */
+    sinkPR += PR(p)
+  foreach page p in P
+    newPR(p) = (1-d)/N                 /* teleportation */
+    newPR(p) += d*sinkPR/N             /* spread remaining sink PR evenly */
+    foreach page q in M(p)             /* pages pointing to p */
+      newPR(p) += d*PR(q)/L(q)         /* add share of PageRank from in-links */
+  foreach page p
+    PR(p) = newPR(p)
+
+return PR
+```
+
+Upon convergence, the top 500 ranked documents are outputted into a text file that records the document ID, document PageRank score, number of outlinks, and number of inlinks. 
+
+## `hits.py`
+
+This file computes the Hub and Authority scores for the same set of crawled documents. To do so, we first obtain a root set of the top 1000 relevant documents using the Elasticsearch built-in retrieval method. The root set is then expanded 
+into a base set of 10,000 documents by adding each root document's outlinks and 200 of its inlinks. Then, the hub and authority scores are computed for the documents in the base set. 
+A page's authority score is equal to the sum of the hub scores of each of its inlinks. A page's hub score is equal to the sum of the authority scores of its outlinks. HITS scores are normalized at every iteration. Same as PageRank, HITS scores are considered to be converged when their perplexity values remain consistent for 4 iterations. 
+
+Upon convergence, the top 500 hub webpages and top 500 authority webpages are outputted to a text file that records 
+the document ID and hub/authority score. 
+
+
+### Discussion: 
 
 Some pages with low inlink counts still have higher PageRank scores than pages with more inlinks because they have inlinks of higher quality. If a document has an inlink with a very high PageRank score, then
 it will have a higher updated score. In the PageRank algorithm, score has a positive relationship with its inlinks' scores; higher scored inlinks will lead to a higher scored document. 
